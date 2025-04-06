@@ -55,12 +55,10 @@ class AppStateManager {
             }
         } catch (error) {
             console.error('Token validation error:', error.response?.data || error.message);
-            // Don't throw error - just log it and continue
         }
     }
 
     initializeTokenCheck() {
-        // Check token validity every 6 hours
         setInterval(() => this.validateToken(), 6 * 60 * 60 * 1000);
     }
 
