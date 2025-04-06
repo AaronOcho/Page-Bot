@@ -9,7 +9,18 @@ const appStateManager = require('./utils/appStateManager');
 
 const PORT = process.env.PORT || 3000;
 
+// Middleware
 app.use(bodyParser.json());
+app.use((req, res, next) => {
+    res.setHeader('X-Powered-By', 'LORD-BOT');
+    next();
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error('Global error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+});
 
 // Webhook verification
 app.get('/webhook', (req, res) => {
@@ -29,67 +40,122 @@ app.get('/webhook', (req, res) => {
 
 // Message handling
 app.post('/webhook', async (req, res) => {
-    if (req.body.object === 'page') {
-        try {
-            for (const entry of req.body.entry) {
-                for (const event of entry.messaging) {
-                    if (event.message) {
-                        const sender_id = event.sender.id;
-                        const message = event.message.text;
+    if (req.body.object !== 'page') {
+        return res.sendStatus(404);
+    }
 
-                        // Get user info
-                        const userInfo = await axios.get(
-                            `https://graph.facebook.com/${sender_id}`,
-                            {
-                                params: {
-                                    access_token: process.env.PAGE_ACCESS_TOKEN,
-                                    fields: 'name'
+    try {
+        for (const entry of req.body.entry) {
+            for (const event of entry.messaging) {
+                if (!event.message) continue;
+
+                const sender_id = event.sender.id;
+                const message = event.message.text;
+
+                try {
+                    // Get user info
+                    const userResponse = await axios({
+                        method: 'get',
+                        url: `https://graph.facebook.com/${sender_id}`,
+                        params: {
+                            fields: 'name',
+                            access_token: process.env.PAGE_ACCESS_TOKEN
+                        }
+                    });
+
+                    // Update or create user in database
+                    await pool.query(
+                        `INSERT INTO users (user_id, name) 
+                         VALUES ($1, $2) 
+                         ON CONFLICT (user_id) 
+                         DO UPDATE SET name = EXCLUDED.name`,
+                        [sender_id, userResponse.data.name]
+                    );
+
+                    // Handle the message
+                    const response = await handleMessage(
+                        sender_id,
+                        message,
+                        userResponse.data.name
+                    );
+
+                    // Send response back to user
+                    await axios({
+                        method: 'post',
+                        url: 'https://graph.facebook.com/v18.0/me/messages',
+                        params: {
+                            access_token: process.env.PAGE_ACCESS_TOKEN
+                        },
+                        data: {
+                            recipient: { id: sender_id },
+                            message: { text: response }
+                        }
+                    });
+
+                    // Update stats
+                    appStateManager.incrementStat('messagesProcessed');
+
+                } catch (error) {
+                    console.error('Error processing message:', error);
+                    
+                    // Send error message to user
+                    try {
+                        await axios({
+                            method: 'post',
+                            url: 'https://graph.facebook.com/v18.0/me/messages',
+                            params: {
+                                access_token: process.env.PAGE_ACCESS_TOKEN
+                            },
+                            data: {
+                                recipient: { id: sender_id },
+                                message: { 
+                                    text: "Sorry, I encountered an error processing your message. Please try again later." 
                                 }
                             }
-                        );
+                        });
+                    } catch (sendError) {
+                        console.error('Error sending error message:', sendError);
+                    }
 
-                        // Update or create user in database
-                        await pool.query(`
-                            INSERT INTO users (user_id, name)
-                            VALUES ($1, $2)
-                            ON CONFLICT (user_id)
-                            DO UPDATE SET name = EXCLUDED.name
-                        `, [sender_id, userInfo.data.name]);
-
-                        const response = await handleMessage(
-                            sender_id,
-                            message,
-                            userInfo.data.name
-                        );
-
-                        // Send response
-                        await axios.post(
-                            `https://graph.facebook.com/v13.0/me/messages`,
-                            {
-                                recipient: { id: sender_id },
-                                message: { text: response }
-                            },
-                            {
-                                params: { access_token: process.env.PAGE_ACCESS_TOKEN }
+                    // Notify admins if enabled
+                    if (appStateManager.getSetting('notifyAdmins')) {
+                        for (const adminId of appStateManager.getAppState().botInfo.admins) {
+                            try {
+                                await axios({
+                                    method: 'post',
+                                    url: 'https://graph.facebook.com/v18.0/me/messages',
+                                    params: {
+                                        access_token: process.env.PAGE_ACCESS_TOKEN
+                                    },
+                                    data: {
+                                        recipient: { id: adminId },
+                                        message: { 
+                                            text: `⚠️ Error processing message from ${sender_id}: ${error.message}` 
+                                        }
+                                    }
+                                });
+                            } catch (notifyError) {
+                                console.error('Error notifying admin:', notifyError);
                             }
-                        );
+                        }
                     }
                 }
             }
-            res.sendStatus(200);
-        } catch (error) {
-            console.error('Error handling message:', error);
-            res.sendStatus(500);
         }
-    } else {
-        res.sendStatus(404);
+        res.sendStatus(200);
+    } catch (error) {
+        console.error('Webhook error:', error);
+        res.sendStatus(500);
     }
 });
 
-// Error handling
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send('Something broke!');
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.json({
+        status: 'healthy',
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString()
+    });
 });
 
 // Initialize database and start server
@@ -112,17 +178,30 @@ async function startServer() {
                 user_id TEXT,
                 command TEXT,
                 args TEXT[],
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                success BOOLEAN DEFAULT true,
+                error_message TEXT
             );
         `);
 
         app.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT}`);
+            console.log(`Server running on port ${PORT}`);
+            console.log(`Bot started at: ${new Date().toISOString()}`);
+            console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
         });
     } catch (error) {
         console.error('Failed to start server:', error);
         process.exit(1);
     }
 }
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+});
+
+process.on('unhandledRejection', (error) => {
+    console.error('Unhandled Rejection:', error);
+});
 
 startServer();
