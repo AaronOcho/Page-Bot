@@ -1,63 +1,70 @@
 const axios = require('axios');
-const config = require('../config/config');
+const config = require('../config');
 
 module.exports = {
-    slap: async (args) => {
+    slap: async (sender_id, args) => {
+        if (args.length < 2) return 'Please tag two users. Usage: !slap @user1 @user2';
         try {
-            const [user1, user2] = args;
-            const response = await axios.get(`${config.apis.slap}?batman=${user1}&superman=${user2}`);
-            return response.data;
+            const response = await axios.post(config.apis.slap, {
+                user1: args[0],
+                user2: args[1]
+            });
+            return response.data.url || 'Failed to generate image.';
         } catch (error) {
-            return "Error generating slap image.";
+            try {
+                const altResponse = await axios.post(config.apis.slapv2, {
+                    user1: args[0],
+                    user2: args[1]
+                });
+                return altResponse.data.url || 'Failed to generate image.';
+            } catch (error) {
+                return 'Error generating slap image. Please try again.';
+            }
         }
     },
 
-    slapv2: async (args) => {
+    kiss: async (sender_id, args) => {
+        if (args.length < 2) return 'Please tag two users. Usage: !kiss @user1 @user2';
         try {
-            const [user1, user2] = args;
-            const response = await axios.get(`${config.apis.slapv2}?one=${user1}&two=${user2}`);
-            return response.data;
+            const response = await axios.post(config.apis.kiss, {
+                user1: args[0],
+                user2: args[1]
+            });
+            return response.data.url || 'Failed to generate image.';
         } catch (error) {
-            return "Error generating slap image.";
+            try {
+                const altResponse = await axios.post(config.apis.kiss2, {
+                    user1: args[0],
+                    user2: args[1]
+                });
+                return altResponse.data.url || 'Failed to generate image.';
+            } catch (error) {
+                return 'Error generating kiss image. Please try again.';
+            }
         }
     },
 
-    kiss: async (args) => {
+    billboard: async (sender_id, args) => {
+        if (!args.length) return 'Please provide text. Usage: !billboard <text>';
         try {
-            const [user1, user2] = args;
-            const response = await axios.get(`${config.apis.kiss}?userid1=${user1}&userid2=${user2}`);
-            return response.data;
+            const response = await axios.post(config.apis.billboard, {
+                text: args.join(' ')
+            });
+            return response.data.url || 'Failed to generate image.';
         } catch (error) {
-            return "Error generating kiss image.";
+            return 'Error generating billboard image. Please try again.';
         }
     },
 
-    kiss2: async (args) => {
+    hangingBillboard: async (sender_id, args) => {
+        if (!args.length) return 'Please provide text. Usage: !hangingBillboard <text>';
         try {
-            const [user1, user2] = args;
-            const response = await axios.get(`${config.apis.kiss2}?one=${user1}&two=${user2}`);
-            return response.data;
+            const response = await axios.post(config.apis.hangingBillboard, {
+                text: args.join(' ')
+            });
+            return response.data.url || 'Failed to generate image.';
         } catch (error) {
-            return "Error generating kiss image.";
-        }
-    },
-
-    billboard: async (args) => {
-        try {
-            const response = await axios.get(`${config.apis.billboard}?text=${encodeURIComponent(args.join(' '))}`);
-            return response.data;
-        } catch (error) {
-            return "Error generating billboard image.";
-        }
-    },
-
-    hangingBillboard: async (args, userId) => {
-        try {
-            const text = args.join(' ');
-            const response = await axios.get(`${config.apis.hangingBillboard}?userid=${userId}&text=${encodeURIComponent(text)}`);
-            return response.data;
-        } catch (error) {
-            return "Error generating hanging billboard image.";
+            return 'Error generating hanging billboard image. Please try again.';
         }
     }
 };
