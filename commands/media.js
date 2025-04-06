@@ -1,27 +1,23 @@
 const axios = require('axios');
-const config = require('../config/config');
+const config = require('../../config/config');
 
 module.exports = {
     shoti: async () => {
         try {
             const response = await axios.get(config.apis.shoti);
-            return response.data.url || 'No video available.';
+            if (response.data.url) return response.data.url;
+
+            const altResponse = await axios.get(config.apis.shotiAlt);
+            return altResponse.data.url || 'No video available.';
         } catch (error) {
-            try {
-                const altResponse = await axios.get(config.apis.shotiAlt);
-                return altResponse.data.url || 'No video available.';
-            } catch (error) {
-                return 'Error fetching video. Please try again.';
-            }
+            return 'Error fetching video. Please try again.';
         }
     },
 
     spotify: async (sender_id, args) => {
         if (!args.length) return 'Please provide a song title. Usage: !spotify <song title>';
         try {
-            const response = await axios.post(config.apis.spotify, {
-                title: args.join(' ')
-            });
+            const response = await axios.get(`${config.apis.spotify}${encodeURIComponent(args.join(' '))}`);
             return response.data.url || 'Song not found.';
         } catch (error) {
             return 'Error searching for song. Please try again.';
@@ -31,9 +27,7 @@ module.exports = {
     flux: async (sender_id, args) => {
         if (!args.length) return 'Please provide a prompt. Usage: !flux <your prompt>';
         try {
-            const response = await axios.post(config.apis.flux, {
-                prompt: args.join(' ')
-            });
+            const response = await axios.get(`${config.apis.flux}${encodeURIComponent(args.join(' '))}`);
             return response.data.url || 'No image generated.';
         } catch (error) {
             return 'Error generating image. Please try again.';
@@ -43,9 +37,7 @@ module.exports = {
     fluxweb: async (sender_id, args) => {
         if (!args.length) return 'Please provide a prompt. Usage: !fluxweb <your prompt>';
         try {
-            const response = await axios.post(config.apis.fluxweb, {
-                prompt: args.join(' ')
-            });
+            const response = await axios.get(`${config.apis.fluxweb}${encodeURIComponent(args.join(' '))}`);
             return response.data.url || 'No image generated.';
         } catch (error) {
             return 'Error generating image. Please try again.';
