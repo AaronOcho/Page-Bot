@@ -2,11 +2,11 @@ const { Pool } = require('pg');
 const config = require('../config/config');
 
 const pool = new Pool({
-    connectionString: config.dbUrl,
+    connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
 });
 
-const initDb = async () => {
+async function initDb() {
     const client = await pool.connect();
     try {
         await client.query(`
@@ -44,7 +44,7 @@ const initDb = async () => {
     } finally {
         client.release();
     }
-};
+}
 
 module.exports = {
     init: initDb,
