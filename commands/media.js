@@ -5,10 +5,10 @@ module.exports = {
     shoti: async () => {
         try {
             const response = await axios.get(config.apis.shoti);
-            if (response.data.url) return response.data.url;
+            if (response.data && response.data.image) return response.data.image;
 
             const altResponse = await axios.get(config.apis.shotiAlt);
-            return altResponse.data.url || 'No video available.';
+            return altResponse.data && altResponse.data.image ? altResponse.data.image : 'No video available.';
         } catch (error) {
             return 'Error fetching video. Please try again.';
         }
@@ -18,7 +18,7 @@ module.exports = {
         if (!args.length) return 'Please provide a song title. Usage: !spotify <song title>';
         try {
             const response = await axios.get(`${config.apis.spotify}${encodeURIComponent(args.join(' '))}`);
-            return response.data.url || 'Song not found.';
+            return response.data && response.data.image ? response.data.image : 'Song not found.';
         } catch (error) {
             return 'Error searching for song. Please try again.';
         }
@@ -28,7 +28,7 @@ module.exports = {
         if (!args.length) return 'Please provide a prompt. Usage: !flux <your prompt>';
         try {
             const response = await axios.get(`${config.apis.flux}${encodeURIComponent(args.join(' '))}`);
-            return response.data.url || 'No image generated.';
+            return response.data && response.data.image ? response.data.image : 'No image generated.';
         } catch (error) {
             return 'Error generating image. Please try again.';
         }
@@ -38,7 +38,7 @@ module.exports = {
         if (!args.length) return 'Please provide a prompt. Usage: !fluxweb <your prompt>';
         try {
             const response = await axios.get(`${config.apis.fluxweb}${encodeURIComponent(args.join(' '))}`);
-            return response.data.url || 'No image generated.';
+            return response.data && response.data.image ? response.data.image : 'No image generated.';
         } catch (error) {
             return 'Error generating image. Please try again.';
         }
@@ -47,7 +47,7 @@ module.exports = {
     cdp: async () => {
         try {
             const response = await axios.get(config.apis.cdp);
-            return response.data.url || 'No image available.';
+            return response.data && response.data.image ? response.data.image : 'No image available.';
         } catch (error) {
             return 'Error fetching image. Please try again.';
         }
@@ -56,7 +56,7 @@ module.exports = {
     ba: async () => {
         try {
             const response = await axios.get(config.apis.ba);
-            return response.data.url || 'No image available.';
+            return response.data && response.data.image ? response.data.image : 'No image available.';
         } catch (error) {
             return 'Error fetching image. Please try again.';
         }
