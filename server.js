@@ -5,7 +5,6 @@ const { pool } = require('./utils/database');
 const appStateManager = require('./utils/appStateManager');
 
 const app = express();
-const startTime = new Date();
 
 app.use(express.static('public'));
 app.use(express.json());
@@ -25,7 +24,7 @@ app.get('/api/stats', async (req, res) => {
             FROM users
         `);
 
-        const uptime = Math.floor((new Date() - startTime) / 1000);
+        const uptime = Math.floor((new Date() - new Date(appState.stats.lastRestart)) / 1000);
         const hours = Math.floor(uptime / 3600);
         const minutes = Math.floor((uptime % 3600) / 60);
         const seconds = uptime % 60;
@@ -43,7 +42,7 @@ app.get('/api/stats', async (req, res) => {
             messagesHandled: stats.rows[0].total_messages,
             cpuUsage: `${cpuUsage.toFixed(2)}%`,
             memoryUsage: `${memoryUsage}%`,
-            lastRestart: startTime.toLocaleString()
+            lastRestart: new Date(appState.stats.lastRestart).toLocaleString()
         });
     } catch (error) {
         console.error('Error fetching stats:', error);
