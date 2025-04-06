@@ -4,47 +4,58 @@ const { pool } = require('../utils/database');
 const commandHandler = require('./commandHandler');
 
 async function handleMessage(sender_id, message, userName) {
-    if (!message) return "Hi! I'm here. Type !help to see what I can do!";
+    console.log(`Processing message from ${userName} (${sender_id}): ${message}`);
+
+    if (!message) {
+        console.log('Empty message received');
+        return "I couldn't understand that message.";
+    }
+
+    const appState = appStateManager.getAppState();
+    
+    if (appState.botInfo.settings.maintenance && !appState.botInfo.admins.includes(sender_id)) {
+        return "⚠️ Bot is currently under maintenance";
+    }
 
     try {
+        const isBanned = await pool.query('SELECT is_banned FROM users WHERE user_id = $1', [sender_id]);
+        if (isBanned.rows[0]?.is_banned) {
+            return "⚠️ You are banned from using this bot";
+        }
+
         await updateUserStats(sender_id);
-        
+
         const lowercaseMsg = message.toLowerCase();
-        
         if (lowercaseMsg === 'hi' || lowercaseMsg === 'hello') {
+            console.log('Handling greeting');
             return await handleGreeting(sender_id, userName);
         }
 
-        if (message.startsWith('!')) {
-            const args = message.slice(1).trim().split(/ +/);
+        if (message.startsWith(appState.botInfo.prefix)) {
+            console.log('Handling command');
+            const args = message.slice(appState.botInfo.prefix.length).trim().split(/ +/);
             const command = args.shift().toLowerCase();
             
-            try {
-                await pool.query(
-                    'UPDATE users SET command_count = command_count + 1 WHERE user_id = $1',
-                    [sender_id]
-                );
-                
-                return await commandHandler.execute(command, sender_id, args);
-            } catch (error) {
-                console.error('Command execution error:', error);
-                return "There was an error executing that command. Please try again!";
-            }
+            await pool.query(
+                'UPDATE users SET command_count = command_count + 1 WHERE user_id = $1',
+                [sender_id]
+            );
+            
+            return await commandHandler.execute(command, sender_id, args);
         }
 
-        return "Hi! Type !help to see what I can do!";
+        return `Hello ${userName}! To see available commands, type !help`;
 
     } catch (error) {
         console.error('Error in handleMessage:', error);
-        return "Hi! I'm here. Type !help to see what I can do!";
+        return "An error occurred while processing your message. Please try again.";
     }
 }
 
 async function updateUserStats(userId) {
     try {
         await pool.query(
-            'INSERT INTO users (user_id, message_count) VALUES ($1, 1) ' +
-            'ON CONFLICT (user_id) DO UPDATE SET message_count = users.message_count + 1',
+            'UPDATE users SET message_count = message_count + 1 WHERE user_id = $1',
             [userId]
         );
     } catch (error) {
@@ -67,10 +78,10 @@ ${styleText('Created by:')}
 ${styleText(appState.botInfo.creator, 'fancy2')}
 
 ╭━━━━━━━━━━━━━━━━╮
-│   𝗣𝗥𝗘𝗙𝗜𝗫: !   │
+│   𝗣𝗥𝗘𝗙𝗜𝗫: ${appState.botInfo.prefix}   │
 ╰━━━━━━━━━━━━━━━━╯
 
-${styleText('Type')} ${styleText('!help', 'bold')} ${styleText('for commands')}
+${styleText('Type')} ${styleText(`${appState.botInfo.prefix}help`, 'bold')} ${styleText('for commands')}
 
 ━━━━━━━━━━━━━━━━━━`;
 }
