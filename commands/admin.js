@@ -1,5 +1,5 @@
 const { pool } = require('../utils/database');
-const config = require('../config');
+const config = require('../config/config');
 
 module.exports = {
     ban: async (sender_id, args) => {
