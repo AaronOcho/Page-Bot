@@ -1,5 +1,5 @@
 const axios = require('axios');
-const config = require('../../config/config');
+const config = require('../config/config');
 
 module.exports = {
     chatgpt: async (sender_id, args) => {
