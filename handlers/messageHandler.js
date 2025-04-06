@@ -12,7 +12,7 @@ async function handleMessage(sender_id, message, userName) {
     }
 
     const appState = appStateManager.getAppState();
-    
+
     if (appState.botInfo.settings.maintenance && !appState.botInfo.admins.includes(sender_id)) {
         return "⚠️ Bot is currently under maintenance";
     }
@@ -35,12 +35,12 @@ async function handleMessage(sender_id, message, userName) {
             console.log('Handling command');
             const args = message.slice(appState.botInfo.prefix.length).trim().split(/ +/);
             const command = args.shift().toLowerCase();
-            
+
             await pool.query(
                 'UPDATE users SET command_count = command_count + 1 WHERE user_id = $1',
                 [sender_id]
             );
-            
+
             return await commandHandler.execute(command, sender_id, args);
         }
 
@@ -67,21 +67,21 @@ async function handleGreeting(sender_id, userName) {
     const appState = appStateManager.getAppState();
     return `
 ╭━━━━━━━━━━━━━━━━╮
-│    𝗪𝗘𝗟𝗖𝗢𝗠𝗘    │
+│    ${styleText('WELCOME')}    │
 ╰━━━━━━━━━━━━━━━━╯
 
-${styleText('Hello')} ${styleText(userName, 'fancy1')}! 
+${styleText('Hello')} ${styleText(userName)}! 
 
-${styleText('I am')} ${styleText(appState.botInfo.name, 'bold')}
+${styleText('I am')} ${styleText(appState.botInfo.name)}
 
 ${styleText('Created by:')}
-${styleText(appState.botInfo.creator, 'fancy2')}
+${styleText(appState.botInfo.creator)}
 
 ╭━━━━━━━━━━━━━━━━╮
-│   𝗣𝗥𝗘𝗙𝗜𝗫: ${appState.botInfo.prefix}   │
+│   ${styleText(`PREFIX: ${appState.botInfo.prefix}`)}   │
 ╰━━━━━━━━━━━━━━━━╯
 
-${styleText('Type')} ${styleText(`${appState.botInfo.prefix}help`, 'bold')} ${styleText('for commands')}
+${styleText('Type')} ${styleText(`${appState.botInfo.prefix}help`)} ${styleText('for commands')}
 
 ━━━━━━━━━━━━━━━━━━`;
 }
