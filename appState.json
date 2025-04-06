@@ -1,0 +1,18 @@
+{
+    "url": "https://www.facebook.com",
+    "cookies": [],
+    "accessToken": "your_page_access_token",
+    "botInfo": {
+        "name": "𝗟𝗢𝗥𝗗 • 𝗕𝗢𝗧",
+        "creator": "𝗔𝗔𝗥𝗢𝗡 𝗢𝗖𝗛𝗢𝗔 / 𝗛𝗘𝗟𝗧𝗢𝗡 𝗡𝗜𝗚𝗛𝗧𝗦𝗛𝗔𝗗𝗘",
+        "prefix": "!",
+        "version": "1.0.0",
+        "admins": ["your_facebook_id"],
+        "blacklistedUsers": [],
+        "settings": {
+            "autoReact": true,
+            "autoReply": true,
+            "maintenance": false
+        }
+    }
+}

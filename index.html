@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>𝗟𝗢𝗥𝗗 • 𝗕𝗢𝗧 Status</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="status-card">
+            <div class="bot-header">
+                <h1>𝗟𝗢𝗥𝗗 • 𝗕𝗢𝗧</h1>
+                <p class="creator">by 𝗔𝗔𝗥𝗢𝗡 𝗢𝗖𝗛𝗢𝗔 / 𝗛𝗘𝗟𝗧𝗢𝗡 𝗡𝗜𝗚𝗛𝗧𝗦𝗛𝗔𝗗𝗘</p>
+            </div>
+            <div class="status-section">
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Status: </span>
+                    <span id="botStatus">Checking...</span>
+                </div>
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Uptime:</span>
+                        <span id="uptime">Loading...</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Users:</span>
+                        <span id="totalUsers">Loading...</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Commands Used:</span>
+                        <span id="commandsUsed">Loading...</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Messages Handled:</span>
+                        <span id="messagesHandled">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="system-info">
+                <h2>System Information</h2>
+                <div class="system-stats">
+                    <div class="system-stat">
+                        <span class="stat-label">CPU Usage:</span>
+                        <span id="cpuUsage">Loading...</span>
+                    </div>
+                    <div class="system-stat">
+                        <span class="stat-label">Memory Usage:</span>
+                        <span id="memoryUsage">Loading...</span>
+                    </div>
+                    <div class="system-stat">
+                        <span class="stat-label">Last Restart:</span>
+                        <span id="lastRestart">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function updateStats() {
+            fetch('/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('botStatus').textContent = data.status;
+                    document.getElementById('uptime').textContent = data.uptime;
+                    document.getElementById('totalUsers').textContent = data.totalUsers;
+                    document.getElementById('commandsUsed').textContent = data.commandsUsed;
+                    document.getElementById('messagesHandled').textContent = data.messagesHandled;
+                    document.getElementById('cpuUsage').textContent = data.cpuUsage;
+                    document.getElementById('memoryUsage').textContent = data.memoryUsage;
+                    document.getElementById('lastRestart').textContent = data.lastRestart;
+
+                    const statusDot = document.querySelector('.status-dot');
+                    statusDot.className = 'status-dot ' + data.status.toLowerCase();
+                })
+                .catch(error => console.error('Error fetching stats:', error));
+        }
+
+        setInterval(updateStats, 5000);
+        updateStats();
+    </script>
+</body>
+</html>
