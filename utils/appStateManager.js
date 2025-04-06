@@ -35,7 +35,10 @@ class AppStateManager {
                 stats: {
                     messagesProcessed: 0,
                     commandsExecuted: 0,
-                    lastRestart: new Date().toISOString()
+                    errors: 0,
+                    lastRestart: new Date().toISOString(),
+                    totalUsers: 0,
+                    activeUsers: 0
                 }
             };
             this.saveAppState();
@@ -55,6 +58,7 @@ class AppStateManager {
             }
         } catch (error) {
             console.error('Token validation error:', error.response?.data || error.message);
+            this.incrementStat('errors');
         }
     }
 
@@ -76,22 +80,23 @@ class AppStateManager {
             fs.writeFileSync(this.appStatePath, JSON.stringify(this.appState, null, 2));
         } catch (error) {
             console.error('Error saving app state:', error);
+            this.incrementStat('errors');
         }
     }
 
-    updateCookies(cookies) {
-        this.appState.cookies = cookies;
-        this.saveAppState();
-    }
-
-    updateAccessToken(token) {
-        this.appState.accessToken = token;
-        this.saveAppState();
-        this.validateToken();
-    }
-
     incrementStat(stat) {
-        if (this.appState.stats[stat] !== undefined) {
+        if (!this.appState.stats) {
+            this.appState.stats = {
+                messagesProcessed: 0,
+                commandsExecuted: 0,
+                errors: 0,
+                lastRestart: new Date().toISOString(),
+                totalUsers: 0,
+                activeUsers: 0
+            };
+        }
+        
+        if (typeof this.appState.stats[stat] === 'number') {
             this.appState.stats[stat]++;
             this.saveAppState();
         }
@@ -114,6 +119,9 @@ class AppStateManager {
     }
 
     updateSetting(setting, value) {
+        if (!this.appState.botInfo.settings) {
+            this.appState.botInfo.settings = {};
+        }
         this.appState.botInfo.settings[setting] = value;
         this.saveAppState();
     }
