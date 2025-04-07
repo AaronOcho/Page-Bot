@@ -2,7 +2,7 @@ require('dotenv').config();
 
 module.exports = {
     prefix: '!',
-    adminIds: ['100091575503341'],
+    adminIds: ['9728264003933833'],
     pageAccessToken: process.env.PAGE_ACCESS_TOKEN,
     verifyToken: process.env.VERIFY_TOKEN,
     port: process.env.PORT || 3000,
