@@ -2,61 +2,65 @@ const axios = require('axios');
 const config = require('../config/config');
 
 module.exports = {
-    slap: async (sender_id, args) => {
-        if (args.length < 2) return { text: 'Tag 2 users' };
+    shoti: async () => {
         try {
-            const response = await axios.get(`${config.apis.slap}${encodeURIComponent(args[0])}&superman=${encodeURIComponent(args[1])}`);
-            const imageUrl = response.data?.url;
-            if (imageUrl) return { attachment: { type: 'image', payload: { url: imageUrl } } };
-            
-            const altResponse = await axios.get(`${config.apis.slapv2}${encodeURIComponent(args[0])}&two=${encodeURIComponent(args[1])}`);
-            const altImageUrl = altResponse.data?.url;
-            if (altImageUrl) return { attachment: { type: 'image', payload: { url: altImageUrl } } };
-            
-            return { text: 'Failed to generate image' };
+            const response = await axios.get(config.apis.shoti);
+            return response.data?.data?.url || response.data?.url || 'No video available';
         } catch {
-            return { text: 'Error' };
+            try {
+                const altResponse = await axios.get(config.apis.shotiAlt);
+                return altResponse.data?.url || 'No video available';
+            } catch {
+                return 'Error fetching video';
+            }
         }
     },
 
-    kiss: async (sender_id, args) => {
-        if (args.length < 2) return { text: 'Tag 2 users' };
+    spotify: async (sender_id, args) => {
+        if (!args.length) return 'Usage: !spotify <song>';
         try {
-            const response = await axios.get(`${config.apis.kiss}${encodeURIComponent(args[0])}&userid2=${encodeURIComponent(args[1])}`);
-            const imageUrl = response.data?.url;
-            if (imageUrl) return { attachment: { type: 'image', payload: { url: imageUrl } } };
-            
-            const altResponse = await axios.get(`${config.apis.kiss2}${encodeURIComponent(args[0])}&two=${encodeURIComponent(args[1])}`);
-            const altImageUrl = altResponse.data?.url;
-            if (altImageUrl) return { attachment: { type: 'image', payload: { url: altImageUrl } } };
-            
-            return { text: 'Failed to generate image' };
+            const response = await axios.get(`${config.apis.spotify}${encodeURIComponent(args.join(' '))}`);
+            return response.data?.url || 'Song not found';
         } catch {
-            return { text: 'Error' };
+            return 'Error searching song';
         }
     },
 
-    billboard: async (sender_id, args) => {
-        if (!args.length) return { text: 'Add text' };
+    flux: async (sender_id, args) => {
+        if (!args.length) return 'Usage: !flux <prompt>';
         try {
-            const response = await axios.get(`${config.apis.billboard}${encodeURIComponent(args.join(' '))}`);
-            const imageUrl = response.data?.url;
-            if (imageUrl) return { attachment: { type: 'image', payload: { url: imageUrl } } };
-            return { text: 'Failed to generate image' };
+            const response = await axios.get(`${config.apis.flux}${encodeURIComponent(args.join(' '))}`);
+            return response.data?.url || 'Failed to generate image';
         } catch {
-            return { text: 'Error' };
+            return 'Error generating image';
         }
     },
 
-    hangingBillboard: async (sender_id, args) => {
-        if (!args.length) return { text: 'Add text' };
+    fluxweb: async (sender_id, args) => {
+        if (!args.length) return 'Usage: !fluxweb <prompt>';
         try {
-            const response = await axios.get(`${config.apis.hangingBillboard}${sender_id}&text=${encodeURIComponent(args.join(' '))}`);
-            const imageUrl = response.data?.url;
-            if (imageUrl) return { attachment: { type: 'image', payload: { url: imageUrl } } };
-            return { text: 'Failed to generate image' };
+            const response = await axios.get(`${config.apis.fluxweb}${encodeURIComponent(args.join(' '))}`);
+            return response.data?.url || 'Failed to generate image';
         } catch {
-            return { text: 'Error' };
+            return 'Error generating image';
+        }
+    },
+
+    cdp: async () => {
+        try {
+            const response = await axios.get(config.apis.cdp);
+            return response.data?.url || 'No image available';
+        } catch {
+            return 'Error fetching image';
+        }
+    },
+
+    ba: async () => {
+        try {
+            const response = await axios.get(config.apis.ba);
+            return response.data?.url || 'No image available';
+        } catch {
+            return 'Error fetching image';
         }
     }
 };
