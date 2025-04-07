@@ -5,74 +5,76 @@ module.exports = {
     shoti: async () => {
         try {
             const response = await axios.get(config.apis.shoti);
-            const videoUrl = response.data?.data?.url || response.data?.url;
-            if (videoUrl) return { attachment: { type: 'video', payload: { url: videoUrl } } };
-        } catch {
+            console.log('Shoti API Response:', JSON.stringify(response.data, null, 2));
+            return response.data?.data?.url || response.data?.url || 'No video available';
+        } catch (error) {
             try {
                 const altResponse = await axios.get(config.apis.shotiAlt);
-                const videoUrl = altResponse.data?.url;
-                if (videoUrl) return { attachment: { type: 'video', payload: { url: videoUrl } } };
-            } catch {
-                return { text: 'Error' };
+                console.log('Shoti Alt API Response:', JSON.stringify(altResponse.data, null, 2));
+                return altResponse.data?.url || 'No video available';
+            } catch (altError) {
+                console.log('Shoti Error:', error.response?.data || error.message);
+                console.log('Shoti Alt Error:', altError.response?.data || altError.message);
+                return 'Error fetching video';
             }
         }
     },
 
     spotify: async (sender_id, args) => {
-        if (!args.length) return { text: 'Usage: !spotify <song>' };
+        if (!args.length) return 'Usage: !spotify <song>';
         try {
             const response = await axios.get(`${config.apis.spotify}${encodeURIComponent(args.join(' '))}`);
-            const audioUrl = response.data?.url;
-            if (audioUrl) return { attachment: { type: 'audio', payload: { url: audioUrl } } };
-            return { text: 'Song not found' };
-        } catch {
-            return { text: 'Error' };
+            console.log('Spotify API Response:', JSON.stringify(response.data, null, 2));
+            return response.data?.url || 'Song not found';
+        } catch (error) {
+            console.log('Spotify Error:', error.response?.data || error.message);
+            return 'Error searching song';
         }
     },
 
     flux: async (sender_id, args) => {
-        if (!args.length) return { text: 'Usage: !flux <prompt>' };
+        if (!args.length) return 'Usage: !flux <prompt>';
         try {
             const response = await axios.get(`${config.apis.flux}${encodeURIComponent(args.join(' '))}`);
-            const imageUrl = response.data?.url;
-            if (imageUrl) return { attachment: { type: 'image', payload: { url: imageUrl } } };
-            return { text: 'Failed to generate image' };
-        } catch {
-            return { text: 'Error' };
+            console.log('Flux API Response:', JSON.stringify(response.data, null, 2));
+            return response.data?.url || 'Failed to generate image';
+        } catch (error) {
+            console.log('Flux Error:', error.response?.data || error.message);
+            return 'Error generating image';
         }
     },
 
     fluxweb: async (sender_id, args) => {
-        if (!args.length) return { text: 'Usage: !fluxweb <prompt>' };
+        if (!args.length) return 'Usage: !fluxweb <prompt>';
         try {
             const response = await axios.get(`${config.apis.fluxweb}${encodeURIComponent(args.join(' '))}`);
-            const imageUrl = response.data?.url;
-            if (imageUrl) return { attachment: { type: 'image', payload: { url: imageUrl } } };
-            return { text: 'Failed to generate image' };
-        } catch {
-            return { text: 'Error' };
+            console.log('FluxWeb API Response:', JSON.stringify(response.data, null, 2));
+            return response.data?.url || 'Failed to generate image';
+        } catch (error) {
+            console.log('FluxWeb Error:', error.response?.data || error.message);
+            return 'Error generating image';
         }
     },
 
     cdp: async () => {
         try {
             const response = await axios.get(config.apis.cdp);
-            const imageUrl = response.data?.url;
-            if (imageUrl) return { attachment: { type: 'image', payload: { url: imageUrl } } };
-            return { text: 'No image available' };
-        } catch {
-            return { text: 'Error' };
+            console.log('CDP API Response:', JSON.stringify(response.data, null, 2));
+            return response.data?.url || 'No image available';
+        } catch (error) {
+            console.log('CDP Error:', error.response?.data || error.message);
+            return 'Error fetching image';
         }
     },
 
     ba: async () => {
         try {
             const response = await axios.get(config.apis.ba);
-            const imageUrl = response.data?.url;
-            if (imageUrl) return { attachment: { type: 'image', payload: { url: imageUrl } } };
-            return { text: 'No image available' };
-        } catch {
-            return { text: 'Error' };
+            console.log('BA API Response:', JSON.stringify(response.data, null, 2));
+            return response.data?.url || 'No image available';
+        } catch (error) {
+            console.log('BA Error:', error.response?.data || error.message);
+            return 'Error fetching image';
         }
     }
 };
