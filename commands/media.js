@@ -4,12 +4,18 @@ const config = require('../config/config');
 module.exports = {
     shoti: async () => {
         try {
-            const response = await axios.get(config.apis.shoti);
-            return response.data;
+            const response = await axios.get(config.apis.shoti, { responseType: 'arraybuffer' });
+            return {
+                body: response.data,
+                type: 'video'
+            };
         } catch {
             try {
-                const altResponse = await axios.get(config.apis.shotiAlt);
-                return altResponse.data;
+                const altResponse = await axios.get(config.apis.shotiAlt, { responseType: 'arraybuffer' });
+                return {
+                    body: altResponse.data,
+                    type: 'video'
+                };
             } catch {
                 return 'Error';
             }
@@ -19,8 +25,11 @@ module.exports = {
     spotify: async (sender_id, args) => {
         if (!args.length) return 'Usage: !spotify <song>';
         try {
-            const response = await axios.get(`${config.apis.spotify}${encodeURIComponent(args.join(' '))}`);
-            return response.data;
+            const response = await axios.get(`${config.apis.spotify}${encodeURIComponent(args.join(' '))}`, { responseType: 'arraybuffer' });
+            return {
+                body: response.data,
+                type: 'audio'
+            };
         } catch {
             return 'Error';
         }
@@ -29,8 +38,11 @@ module.exports = {
     flux: async (sender_id, args) => {
         if (!args.length) return 'Usage: !flux <prompt>';
         try {
-            const response = await axios.get(`${config.apis.flux}${encodeURIComponent(args.join(' '))}`);
-            return response.data;
+            const response = await axios.get(`${config.apis.flux}${encodeURIComponent(args.join(' '))}`, { responseType: 'arraybuffer' });
+            return {
+                body: response.data,
+                type: 'image'
+            };
         } catch {
             return 'Error';
         }
@@ -39,8 +51,11 @@ module.exports = {
     fluxweb: async (sender_id, args) => {
         if (!args.length) return 'Usage: !fluxweb <prompt>';
         try {
-            const response = await axios.get(`${config.apis.fluxweb}${encodeURIComponent(args.join(' '))}`);
-            return response.data;
+            const response = await axios.get(`${config.apis.fluxweb}${encodeURIComponent(args.join(' '))}`, { responseType: 'arraybuffer' });
+            return {
+                body: response.data,
+                type: 'image'
+            };
         } catch {
             return 'Error';
         }
@@ -48,8 +63,11 @@ module.exports = {
 
     cdp: async () => {
         try {
-            const response = await axios.get(config.apis.cdp);
-            return response.data;
+            const response = await axios.get(config.apis.cdp, { responseType: 'arraybuffer' });
+            return {
+                body: response.data,
+                type: 'image'
+            };
         } catch {
             return 'Error';
         }
@@ -57,8 +75,11 @@ module.exports = {
 
     ba: async () => {
         try {
-            const response = await axios.get(config.apis.ba);
-            return response.data;
+            const response = await axios.get(config.apis.ba, { responseType: 'arraybuffer' });
+            return {
+                body: response.data,
+                type: 'image'
+            };
         } catch {
             return 'Error';
         }
